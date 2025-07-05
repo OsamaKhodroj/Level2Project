@@ -1,12 +1,14 @@
-﻿using Domains.Enums;
+﻿using System;
+using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
 
-namespace Domains.Entities
+namespace Domains.Dtos
 {
-    public class User : EntityBase<Guid>
-    { 
-        public override Guid Id { get => base.Id; set => base.Id = Guid.NewGuid(); }
-
+    public class AddUserRequestDto
+    {
         [Required]
         public string FullName { get; set; }
 
@@ -20,9 +22,5 @@ namespace Domains.Entities
         public string PhoneNumber { get; set; }
 
         public string Address { get; set; }
-
-        public UserTypeEnum  UserType { get; set; } = UserTypeEnum.User;
-        public StatusTypeEnum StatusType { get; set; } = StatusTypeEnum.Active;
-
     }
 }

@@ -2,15 +2,15 @@
     string notifyClass = string.Empty;
     string notifyTitle = string.Empty;
 }
-@model AddUserResponseDto;
+@model UpdateUserInfoDto;
 
 <div class="col-xl-6">
     <div class="card mb-6">
         <div class="card-header d-flex justify-content-between align-items-center">
-            <h5 class="mb-0">Add New User</h5> 
+            <h5 class="mb-0">Add New User</h5>
         </div>
         <div class="card-body">
-            @switch (Model.Status)
+            @switch (Model.AddUserResponseDto.Status)
             {
                 case OpStatus.None:
                     notifyClass = string.Empty;
@@ -37,7 +37,7 @@
             {
                 <div class="alert @notifyClass alert-dismissible" role="alert">
                     <h5 class="alert-heading d-flex align-items-center flex-wrap gap-1 mb-1">@notifyTitle</h5>
-                    <p class="mb-0">@Model.Message</p>
+                    <p class="mb-0">@Model.AddUserResponseDto.Message</p>
                     <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
                 </div>
             }
