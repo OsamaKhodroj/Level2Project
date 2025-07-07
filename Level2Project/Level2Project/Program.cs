@@ -1,3 +1,6 @@
+using Domains.Interfaces;
+using Services;
+
 namespace Level2Project
 {
     public class Program
@@ -8,6 +11,8 @@ namespace Level2Project
 
             // Add services to the container.
             builder.Services.AddControllersWithViews();
+
+            builder.Services.AddSingleton<IUser, UserService>();
 
             var app = builder.Build();
 

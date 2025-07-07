@@ -1,6 +1,7 @@
 ﻿
+using Domains.Dtos;
 using Domains.Entities;
-using Level2Project.Models;
+using Domains.Interfaces;
 using Services;
 using System.Threading.Tasks;
 
@@ -8,38 +9,73 @@ namespace Level2Project.Controllers;
 
 public class UsersController : Controller
 {
+    private readonly IUser _userService;
+
+    public UsersController(IUser userService)
+    {
+        _userService = userService;
+    }
+
     public IActionResult Add()
     {
-        return View();
+        var addUserResponse = new AddUserResponseDto();
+        return View(addUserResponse);
+    }
+
+    public async Task<IActionResult> Manage(string? query)
+    {
+        var result = await _userService.GetAllAsync(query);
+        return View(result);
+    }
+
+    public async Task<IActionResult> Update(Guid id)
+    {
+        var addUserResponse = await _userService.GetByIdAsync(id);
+        if (addUserResponse == null)
+            return NoContent();
+
+        var updateUserInfoDto = new UpdateUserInfoDto();
+        updateUserInfoDto.GetUserInfoResponseDto = addUserResponse;
+        updateUserInfoDto.AddUserResponseDto = new AddUserResponseDto();
+
+
+        return View(updateUserInfoDto);
     }
 
 
     [HttpPost]
-    public async Task<IActionResult> AddUser(User user)
+    public async Task<IActionResult> AddUser(AddUserRequestDto request)
     {
-        UserService userService = new UserService();
-        await userService.AddAsync(user);
-
-        return View();
+        var response = await _userService.AddAsync(request);
+        return View("Add", response);
     }
 
 
     [HttpPost]
     public async Task<IActionResult> UpdateUser(User user)
     {
-        UserService userService = new UserService();
-        await userService.UpdateAsync(user);
+        var  result =  await _userService.UpdateAsync(user);
+        var updateUserInfoDto = new UpdateUserInfoDto();
 
-        return View();
+
+        updateUserInfoDto.GetUserInfoResponseDto = new GetUserInfoResponseDto(); 
+         
+
+        if (result.Status == Domains.Enums.OpStatus.Success)
+        {
+            var userInfo = await _userService.GetByIdAsync(user.Id);
+            updateUserInfoDto.GetUserInfoResponseDto = userInfo;
+            updateUserInfoDto.AddUserResponseDto = result;
+        }
+
+        return View("Update", updateUserInfoDto);
     }
 
-    [HttpPost]
+    [HttpGet]
     public async Task<IActionResult> DeleteUser(Guid id)
     {
-        UserService userService = new UserService();
-        await userService.DeleteAsync(id);
-
-        return View();
+        await _userService.DeleteAsync(id);
+        return RedirectToAction("Manage");
     }
 }
 

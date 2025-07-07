@@ -1,5 +1,8 @@
-﻿using Domains.Entities;
+﻿using Domains.Dtos;
+using Domains.Entities;
+using Domains.Enums;
 using Domains.Interfaces;
+using Infrastructure;
 
 namespace Services
 {
@@ -15,27 +18,52 @@ namespace Services
             }
         }
 
-        public async Task AddAsync(User user)
+        public async Task<AddUserResponseDto> AddAsync(AddUserRequestDto request)
         {
+            var response = new AddUserResponseDto();
+
             try
             {
                 await Task.CompletedTask;
-
-                var isValidate = IsValidUser(user);
+                var isValidate = IsValidUser(request);
 
                 if (isValidate)
                 {
+                    var user = new User()
+                    {
+                        FullName = request.FullName,
+                        Email = request.Email,
+                        Address = request.Address,
+                        Password = request.Password,
+                        PhoneNumber = request.PhoneNumber
+                    };
                     user.Id = Guid.NewGuid();
+                    user.StatusType = Domains.Enums.StatusTypeEnum.Active;
+                    user.IsDeleted = false;
+                    user.UserType = Domains.Enums.UserTypeEnum.User;
+                    user.Password = Encryption.Hash(user.Password);
+
                     _users.Add(user);
+                    response.Status = OpStatus.Success;
+                    response.Message = "User Added Sucessfully";
+                }
+                else
+                {
+                    response.Status = OpStatus.Warning;
+                    response.Message = "Email address or phone number is already exists";
                 }
             }
             catch (Exception)
             {
+                response.Status = OpStatus.Error;
+                response.Message = "Sorry we have something error please try again later";
             }
+            return response;
         }
 
-        public async Task DeleteAsync(Guid id)
+        public async Task<AddUserResponseDto> DeleteAsync(Guid id)
         {
+            var response = new AddUserResponseDto();
             await Task.CompletedTask;
 
             if (id == Guid.Empty)
@@ -47,18 +75,29 @@ namespace Services
             {
                 userInfo.IsDeleted = true;
             }
+            return response;
         }
 
-        public async Task<List<User>> GetAllAsync()
+        public async Task<List<GetUsersListDto>> GetAllAsync(string query)
         {
             await Task.CompletedTask;
             var result = _users.Where(x => !x.IsDeleted)
+                .Where(q => query == null || q.FullName.ToLower().Contains(query.ToLower())) 
+                .Select(q => new GetUsersListDto()
+                {
+                    Email = q.Email,
+                    FullName = q.FullName,
+                    Id = q.Id,
+                    PhoneNumber = q.PhoneNumber,
+                    StatusType = q.StatusType,
+                    UserType = q.UserType,
+                })
                 .ToList();
 
             return result;
         }
 
-        public async Task<User> GetByIdAsync(Guid id)
+        public async Task<GetUserInfoResponseDto> GetByIdAsync(Guid id)
         {
             await Task.CompletedTask;
 
@@ -66,25 +105,58 @@ namespace Services
                 throw new ArgumentException("id is required");
 
             var userInfo = _users.Where(x => x.Id == id && !x.IsDeleted)
+                .Select(q => new GetUserInfoResponseDto()
+                {
+                    Address = q.Address,
+                    Email = q.Email,
+                    FullName = q.FullName,
+                    Id = q.Id,
+                    PhoneNumber = q.PhoneNumber,
+                    StatusType = q.StatusType,
+                    UserType = q.UserType
+                })
                 .FirstOrDefault();
 
             return userInfo;
         }
 
-        public Task UpdateAsync(User user)
+        public async Task<AddUserResponseDto> UpdateAsync(User param)
         {
-            throw new NotImplementedException();
+            await Task.CompletedTask;
+            var addUserResponseDto = new AddUserResponseDto();
+
+            var userInfo = _users.Where(q => q.Id == param.Id)
+                .FirstOrDefault();
+
+            if (userInfo != null)
+            {
+                userInfo.Address = param.Address;
+                userInfo.PhoneNumber = param.PhoneNumber;
+                userInfo.FullName = param.FullName;
+                userInfo.Email = param.Email;
+
+                addUserResponseDto.Status = OpStatus.Success;
+                addUserResponseDto.Message = "User info updated sucessfully";
+                return addUserResponseDto;
+            }
+            addUserResponseDto.Status = OpStatus.Warning;
+            addUserResponseDto.Message = "Error happened when update user info";
+            return addUserResponseDto;
+
         }
 
 
-        private bool IsValidUser(User user)
+        private bool IsValidUser(AddUserRequestDto request)
         {
-            if (user == null)
+            if (request == null)
                 return false;
 
+            var isUserExists = _users.Any(q => q.Email == request.Email || q.PhoneNumber == request.PhoneNumber);
+            if (isUserExists)
+                return false;
 
-            if (string.IsNullOrWhiteSpace(user.FirstName) || string.IsNullOrWhiteSpace(user.LastName) ||
-                string.IsNullOrWhiteSpace(user.Email) || string.IsNullOrWhiteSpace(user.Password))
+            if (string.IsNullOrWhiteSpace(request.FullName) ||
+                string.IsNullOrWhiteSpace(request.Email) || string.IsNullOrWhiteSpace(request.Password))
             {
                 return false;
             }
