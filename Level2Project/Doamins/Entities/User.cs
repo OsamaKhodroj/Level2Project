@@ -4,9 +4,7 @@ using System.ComponentModel.DataAnnotations;
 namespace Domains.Entities
 {
     public class User : EntityBase<Guid>
-    { 
-        public override Guid Id { get => base.Id; set => base.Id = Guid.NewGuid(); }
-
+    {   
         [Required]
         public string FullName { get; set; }
 

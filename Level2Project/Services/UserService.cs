@@ -78,10 +78,11 @@ namespace Services
             return response;
         }
 
-        public async Task<List<GetUsersListDto>> GetAllAsync()
+        public async Task<List<GetUsersListDto>> GetAllAsync(string query)
         {
             await Task.CompletedTask;
             var result = _users.Where(x => !x.IsDeleted)
+                .Where(q => query == null || q.FullName.ToLower().Contains(query.ToLower())) 
                 .Select(q => new GetUsersListDto()
                 {
                     Email = q.Email,
@@ -119,12 +120,29 @@ namespace Services
             return userInfo;
         }
 
-        public async Task<AddUserResponseDto> UpdateAsync(User user)
+        public async Task<AddUserResponseDto> UpdateAsync(User param)
         {
             await Task.CompletedTask;
+            var addUserResponseDto = new AddUserResponseDto();
 
-            var response = new AddUserResponseDto();
-            return response;
+            var userInfo = _users.Where(q => q.Id == param.Id)
+                .FirstOrDefault();
+
+            if (userInfo != null)
+            {
+                userInfo.Address = param.Address;
+                userInfo.PhoneNumber = param.PhoneNumber;
+                userInfo.FullName = param.FullName;
+                userInfo.Email = param.Email;
+
+                addUserResponseDto.Status = OpStatus.Success;
+                addUserResponseDto.Message = "User info updated sucessfully";
+                return addUserResponseDto;
+            }
+            addUserResponseDto.Status = OpStatus.Warning;
+            addUserResponseDto.Message = "Error happened when update user info";
+            return addUserResponseDto;
+
         }
 
 

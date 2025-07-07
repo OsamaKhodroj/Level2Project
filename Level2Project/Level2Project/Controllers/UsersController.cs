@@ -22,9 +22,9 @@ public class UsersController : Controller
         return View(addUserResponse);
     }
 
-    public async Task<IActionResult> Manage()
+    public async Task<IActionResult> Manage(string? query)
     {
-        var result = await _userService.GetAllAsync();
+        var result = await _userService.GetAllAsync(query);
         return View(result);
     }
 
@@ -34,7 +34,12 @@ public class UsersController : Controller
         if (addUserResponse == null)
             return NoContent();
 
-        return View(addUserResponse);
+        var updateUserInfoDto = new UpdateUserInfoDto();
+        updateUserInfoDto.GetUserInfoResponseDto = addUserResponse;
+        updateUserInfoDto.AddUserResponseDto = new AddUserResponseDto();
+
+
+        return View(updateUserInfoDto);
     }
 
 
@@ -49,15 +54,28 @@ public class UsersController : Controller
     [HttpPost]
     public async Task<IActionResult> UpdateUser(User user)
     {
-        await _userService.UpdateAsync(user);
-        return View();
+        var  result =  await _userService.UpdateAsync(user);
+        var updateUserInfoDto = new UpdateUserInfoDto();
+
+
+        updateUserInfoDto.GetUserInfoResponseDto = new GetUserInfoResponseDto(); 
+         
+
+        if (result.Status == Domains.Enums.OpStatus.Success)
+        {
+            var userInfo = await _userService.GetByIdAsync(user.Id);
+            updateUserInfoDto.GetUserInfoResponseDto = userInfo;
+            updateUserInfoDto.AddUserResponseDto = result;
+        }
+
+        return View("Update", updateUserInfoDto);
     }
 
-    [HttpPost]
+    [HttpGet]
     public async Task<IActionResult> DeleteUser(Guid id)
     {
         await _userService.DeleteAsync(id);
-        return View();
+        return RedirectToAction("Manage");
     }
 }
 

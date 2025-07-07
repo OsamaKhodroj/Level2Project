@@ -8,7 +8,7 @@ namespace Domains.Entities
 {
     public class EntityBase<T>
     {
-        public virtual T Id { get; set; }
+        public T Id { get; set; }
         public bool IsDeleted { get; set; }
         public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
         public DateTime UpdatedAt { get; set; }

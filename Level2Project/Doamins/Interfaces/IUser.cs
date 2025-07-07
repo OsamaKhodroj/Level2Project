@@ -10,7 +10,7 @@ namespace Domains.Interfaces
         Task<AddUserResponseDto> UpdateAsync(User user);
         Task<AddUserResponseDto> DeleteAsync(Guid id);
         Task<GetUserInfoResponseDto> GetByIdAsync(Guid id);
-        Task<List<GetUsersListDto>> GetAllAsync(); 
+        Task<List<GetUsersListDto>> GetAllAsync(string? query); 
 
     }
 }
